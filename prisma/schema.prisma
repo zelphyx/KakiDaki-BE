@@ -18,6 +18,19 @@ enum Difficulty {
   EXTREME
 }
 
+enum PrepStatus {
+  DRAFT
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum Decision {
+  GO
+  CAUTION
+  NO_GO
+}
+
 model User {
   id                      String   @id @default(cuid())
   name                    String
@@ -40,6 +53,7 @@ model User {
   updatedAt               DateTime @updatedAt @map("updated_at")
 
   fitnessProfile FitnessProfile?
+  expeditions    Expedition[]
 
   @@map("users")
 }
@@ -77,5 +91,29 @@ model Mountain {
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 
+  expeditions Expedition[]
+
   @@map("mountains")
+}
+
+model Expedition {
+  id              String     @id @default(cuid())
+  userId          String     @map("user_id")
+  mountainId      String     @map("mountain_id")
+  startDate       DateTime   @map("start_date")
+  endDate         DateTime   @map("end_date")
+  climbTempC      Float?     @map("climb_temp_c")
+  weatherSummary  String?    @map("weather_summary")
+  readinessScore  Float?     @map("readiness_score")
+  decision        Decision?
+  aiRationale     String?    @map("ai_rationale")
+  memberCount     Int        @default(1) @map("member_count")
+  status          PrepStatus @default(DRAFT)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mountain Mountain @relation(fields: [mountainId], references: [id])
+
+  @@map("expeditions")
 }
