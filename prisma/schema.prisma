@@ -11,6 +11,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Difficulty {
+  EASY
+  MODERATE
+  HARD
+  EXTREME
+}
+
 model User {
   id                      String   @id @default(cuid())
   name                    String
@@ -54,4 +61,21 @@ model FitnessProfile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("fitness_profiles")
+}
+
+model Mountain {
+  id              String     @id @default(cuid())
+  name            String     @unique
+  elevationM      Float      @map("elevation_m")
+  difficulty      Difficulty
+  distanceToPeakKm Float    @map("distance_to_peak_km")
+  baseTempC       Float?     @map("base_temp_c")
+  latitude        Float
+  longitude       Float
+  description     String?
+  imageUrl        String?    @map("image_url")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  @@map("mountains")
 }
