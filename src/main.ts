@@ -47,7 +47,7 @@ async function bootstrap() {
 
   const port = config.get<number>('port') ?? 3000;
   await app.listen(port);
-  console.log(`KakiDaki API running on https://localhost:${port}/api/v1`);
-  console.log(`Swagger docs at http://localhost:${port}/api/docs`);
+  console.log(`KakiDaki API running on https://api.kakidaki.my.id/api/v1`);
+  console.log(`Swagger docs at https://api.kakidaki.my.id/api/docs`);
 }
 bootstrap();
