@@ -4,9 +4,11 @@ import {
   IsString,
   IsInt,
   IsNumber,
+  IsEnum,
   Min,
   Max,
 } from 'class-validator';
+import { Gender } from '@prisma/client';
 
 export class UpdateProfileDto {
   @ApiProperty({ example: 'Budi Pendaki', required: false })
@@ -25,6 +27,11 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiProperty({ enum: Gender, example: Gender.MALE, required: false })
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
 }
 
 export class AssessmentDto {
@@ -42,8 +49,37 @@ export class AssessmentDto {
 
   @ApiProperty({
     example: 'Asthma, controlled. No heart conditions.',
-    description: 'Medical history (history medic)',
+    required: false,
+    description: 'Free-text medical summary (legacy/optional)',
   })
+  @IsOptional()
   @IsString()
-  medicalHistory: string;
+  medicalHistory?: string;
+
+  @ApiProperty({
+    example: 'Asma ringan, terkontrol dengan inhaler.',
+    required: false,
+    description: 'Riwayat penyakit pernapasan/jantung',
+  })
+  @IsOptional()
+  @IsString()
+  respiratoryHeartHistory?: string;
+
+  @ApiProperty({
+    example: 'Pernah cedera lutut kiri 2023, sudah pulih.',
+    required: false,
+    description: 'Riwayat cedera fisik (sendi/tulang)',
+  })
+  @IsOptional()
+  @IsString()
+  physicalInjuryHistory?: string;
+
+  @ApiProperty({
+    example: 'Alergi dingin, alergi obat golongan penisilin.',
+    required: false,
+    description: 'Alergi cuaca/obat (opsional)',
+  })
+  @IsOptional()
+  @IsString()
+  weatherDrugAllergy?: string;
 }

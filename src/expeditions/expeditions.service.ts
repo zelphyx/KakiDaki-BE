@@ -85,7 +85,7 @@ export class ExpeditionsService {
     if (!user) throw new NotFoundException('User not found');
     if (!mountain) throw new NotFoundException('Mountain not found');
 
-    // Weather for climb day
+    // Weather for climb day(s)
     const forecasts = await this.weather.getForecast(
       mountain.latitude,
       mountain.longitude,
@@ -94,11 +94,25 @@ export class ExpeditionsService {
     );
     const climbDay = forecasts[0];
 
+    // 7-day outlook from today until H-day (climb start)
+    const weekOutlook = await this.weather.getWeekOutlook(
+      mountain.latitude,
+      mountain.longitude,
+      expedition.startDate,
+    );
+
+    // Best time to leave to catch sunrise at the summit
+    const summitTiming = this.computeSummitSunriseTiming(
+      climbDay?.sunrise ?? null,
+      mountain.distanceToPeakKm,
+      user.fitnessProfile?.avgPaceMinPerKm ?? null,
+    );
+
     const aiInput = {
       user: {
         age: user.age,
         bmi: user.bmi,
-        medicalHistory: user.medicalHistory,
+        medicalHistory: this.buildMedicalSummary(user),
         capabilityScore: user.fitnessProfile?.capabilityScore,
         weeklyDistanceKm: user.fitnessProfile?.weeklyDistanceKm,
         weeklyElevationM: user.fitnessProfile?.weeklyElevationM,
@@ -134,7 +148,72 @@ export class ExpeditionsService {
       include: { mountain: true, logistics: true },
     });
 
-    return { expedition: updated, weatherForecast: forecasts };
+    return {
+      expedition: updated,
+      weatherForecast: forecasts,
+      weekOutlook,
+      summitTiming,
+    };
+  }
+
+  /**
+   * Compute the recommended departure time to reach the summit for sunrise.
+   * Uses the climb-day sunrise (Open-Meteo), the mountain's distance to peak,
+   * and the user's average hiking pace (from Strava training, min/km).
+   * Falls back to a conservative 20 min/km if pace is unknown.
+   */
+  private computeSummitSunriseTiming(
+    sunriseIso: string | null,
+    distanceToPeakKm: number,
+    avgPaceMinPerKm: number | null,
+  ) {
+    if (!sunriseIso) return null;
+
+    const sunrise = new Date(sunriseIso);
+    if (isNaN(sunrise.getTime())) return null;
+
+    // Hiking uphill is much slower than a Strava run pace. Apply a terrain
+    // factor so the estimate is realistic for summit ascent.
+    const TERRAIN_FACTOR = 2.5;
+    const FALLBACK_PACE_MIN_PER_KM = 20;
+    const basePace = avgPaceMinPerKm ?? FALLBACK_PACE_MIN_PER_KM;
+    const effectivePace = avgPaceMinPerKm
+      ? basePace * TERRAIN_FACTOR
+      : FALLBACK_PACE_MIN_PER_KM;
+
+    const ascentMinutes = Math.round(distanceToPeakKm * effectivePace);
+    // 15 min buffer to settle in before sunrise
+    const bufferMinutes = 15;
+    const departure = new Date(
+      sunrise.getTime() - (ascentMinutes + bufferMinutes) * 60 * 1000,
+    );
+
+    return {
+      sunriseAtSummit: sunrise.toISOString(),
+      estimatedAscentMinutes: ascentMinutes,
+      bufferMinutes,
+      recommendedDeparture: departure.toISOString(),
+      paceMinPerKmUsed: +effectivePace.toFixed(1),
+      paceSource: avgPaceMinPerKm ? 'strava' : 'fallback',
+      note: avgPaceMinPerKm
+        ? 'Pace dihitung dari rata-rata latihan Strava dengan faktor medan pendakian.'
+        : 'Pace default dipakai karena belum ada data latihan Strava.',
+    };
+  }
+
+  /**
+   * Combine detailed assessment fields into a single medical summary for the AI.
+   */
+  private buildMedicalSummary(user: any): string | null {
+    const parts: string[] = [];
+    if (user.respiratoryHeartHistory)
+      parts.push(`Pernapasan/jantung: ${user.respiratoryHeartHistory}`);
+    if (user.physicalInjuryHistory)
+      parts.push(`Cedera fisik: ${user.physicalInjuryHistory}`);
+    if (user.weatherDrugAllergy)
+      parts.push(`Alergi: ${user.weatherDrugAllergy}`);
+    if (parts.length === 0) return user.medicalHistory ?? null;
+    return parts.join('. ');
   }
 
   findAll(userId: string) {

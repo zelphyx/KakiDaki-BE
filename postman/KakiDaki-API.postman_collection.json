@@ -42,7 +42,7 @@
             "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Budi Pendaki\",\n  \"email\": \"budi@example.com\",\n  \"password\": \"secret123\",\n  \"age\": 28,\n  \"phone\": \"+628123456789\"\n}"
+              "raw": "{\n  \"name\": \"Budi Pendaki\",\n  \"email\": \"budi@example.com\",\n  \"password\": \"secret123\",\n  \"age\": 28,\n  \"phone\": \"+628123456789\",\n  \"gender\": \"MALE\"\n}"
             }
           }
         },
@@ -98,7 +98,7 @@
             "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Budi Pendaki Updated\",\n  \"age\": 29,\n  \"phone\": \"+628123456789\"\n}"
+              "raw": "{\n  \"name\": \"Budi Pendaki Updated\",\n  \"age\": 29,\n  \"phone\": \"+628123456789\",\n  \"gender\": \"MALE\"\n}"
             }
           }
         },
@@ -113,7 +113,7 @@
             "url": { "raw": "{{baseUrl}}/users/me/assessment", "host": ["{{baseUrl}}"], "path": ["users", "me", "assessment"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"heightCm\": 170,\n  \"weightKg\": 65,\n  \"medicalHistory\": \"Tidak ada riwayat asma, jantung, atau hipertensi. Kondisi sehat.\"\n}"
+              "raw": "{\n  \"heightCm\": 170,\n  \"weightKg\": 65,\n  \"respiratoryHeartHistory\": \"Asma ringan, terkontrol dengan inhaler.\",\n  \"physicalInjuryHistory\": \"Pernah cedera lutut kiri 2023, sudah pulih.\",\n  \"weatherDrugAllergy\": \"Alergi dingin, alergi obat golongan penisilin.\"\n}"
             }
           }
         },
@@ -585,6 +585,102 @@
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "url": { "raw": "{{baseUrl}}/payments/history", "host": ["{{baseUrl}}"], "path": ["payments", "history"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Admin (Role: ADMIN)",
+      "description": "Endpoint khusus admin. Login dulu dengan akun ber-role ADMIN agar {{token}} membawa role admin. Set role via DB: UPDATE users SET role='ADMIN' WHERE email='...'.",
+      "item": [
+        {
+          "name": "Admin — List All Comments (incl. blocked)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/admin/comments?mountainId={{mountainId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "comments"],
+              "query": [
+                { "key": "mountainId", "value": "{{mountainId}}", "description": "Opsional: filter per gunung" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin — Block Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/admin/comments/{{commentId}}/block", "host": ["{{baseUrl}}"], "path": ["admin", "comments", "{{commentId}}", "block"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Komentar mengandung ujaran kebencian.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Admin — Unblock Comment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/comments/{{commentId}}/unblock", "host": ["{{baseUrl}}"], "path": ["admin", "comments", "{{commentId}}", "unblock"] }
+          }
+        },
+        {
+          "name": "Admin — Create Mountain (manual)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('mountainId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/mountains", "host": ["{{baseUrl}}"], "path": ["mountains"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gunung Slamet\",\n  \"elevationM\": 3428,\n  \"difficulty\": \"HARD\",\n  \"distanceToPeakKm\": 11.5,\n  \"baseTempC\": 10,\n  \"latitude\": -7.2425,\n  \"longitude\": 109.2081,\n  \"description\": \"Gunung tertinggi di Jawa Tengah.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Admin — Update Mountain",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/mountains/{{mountainId}}", "host": ["{{baseUrl}}"], "path": ["mountains", "{{mountainId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Deskripsi diperbarui oleh admin.\",\n  \"difficulty\": \"EXTREME\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Admin — Delete Mountain",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/mountains/{{mountainId}}", "host": ["{{baseUrl}}"], "path": ["mountains", "{{mountainId}}"] }
           }
         }
       ]

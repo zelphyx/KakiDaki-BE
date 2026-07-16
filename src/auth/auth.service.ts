@@ -31,10 +31,11 @@ export class AuthService {
         passwordHash,
         age: dto.age,
         phone: dto.phone,
+        gender: dto.gender,
       },
     });
 
-    return this.buildAuthResponse(user.id, user.email, user.name);
+    return this.buildAuthResponse(user.id, user.email, user.name, user.role);
   }
 
   async login(dto: LoginDto) {
@@ -50,14 +51,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.buildAuthResponse(user.id, user.email, user.name);
+    return this.buildAuthResponse(user.id, user.email, user.name, user.role);
   }
 
-  private buildAuthResponse(userId: string, email: string, name: string) {
-    const token = this.jwt.sign({ sub: userId, email });
+  private buildAuthResponse(
+    userId: string,
+    email: string,
+    name: string,
+    role: string,
+  ) {
+    const token = this.jwt.sign({ sub: userId, email, role });
     return {
       accessToken: token,
-      user: { id: userId, email, name },
+      user: { id: userId, email, name, role },
     };
   }
 }

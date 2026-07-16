@@ -6,9 +6,11 @@ import {
   IsString,
   MinLength,
   IsInt,
+  IsEnum,
   Min,
   Max,
 } from 'class-validator';
+import { Gender } from '@prisma/client';
 
 export class RegisterDto {
   @ApiProperty({ example: 'Budi Pendaki' })
@@ -36,6 +38,11 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiProperty({ enum: Gender, example: Gender.MALE, required: false })
+  @IsOptional()
+  @IsEnum(Gender)
+  gender?: Gender;
 }
 
 export class LoginDto {

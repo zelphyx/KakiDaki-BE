@@ -35,6 +35,9 @@ export class UsersService {
         weightKg: dto.weightKg,
         bmi,
         medicalHistory: dto.medicalHistory,
+        respiratoryHeartHistory: dto.respiratoryHeartHistory,
+        physicalInjuryHistory: dto.physicalInjuryHistory,
+        weatherDrugAllergy: dto.weatherDrugAllergy,
         hasCompletedAssessment: true,
       },
     });

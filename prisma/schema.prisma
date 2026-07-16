@@ -66,6 +66,16 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
 // ============================================================
 // USER
 // ============================================================
@@ -77,14 +87,21 @@ model User {
   passwordHash String   @map("password_hash")
   age          Int?
   phone        String?  @map("phone")
+  gender       Gender?
 
   // Physical assessment (mandatory before first expedition)
   heightCm     Float?   @map("height_cm") // tb
   weightKg     Float?   @map("weight_kg") // bb
   bmi          Float?
-  medicalHistory String? @map("medical_history") // history medic
+  medicalHistory String? @map("medical_history") // history medic (legacy free-text summary)
 
-  // Flags
+  // Detailed medical assessment (hiking form)
+  respiratoryHeartHistory String? @map("respiratory_heart_history") // riwayat penyakit pernapasan/jantung
+  physicalInjuryHistory   String? @map("physical_injury_history")   // riwayat cedera fisik (sendi/tulang)
+  weatherDrugAllergy      String? @map("weather_drug_allergy")      // alergi cuaca/obat (opsional)
+
+  // Roles & flags
+  role                   Role    @default(USER)
   hasCompletedAssessment Boolean @default(false) @map("has_completed_assessment")
   isPro                  Boolean @default(false) @map("is_pro")
   prepCredits            Int     @default(1) @map("prep_credits") // free = 1 prep
@@ -255,6 +272,11 @@ model Comment {
   imageUrl String? @map("image_url")
   upvote   Int     @default(0)
   downvote Int     @default(0)
+
+  // Moderation (admin)
+  isBlocked   Boolean   @default(false) @map("is_blocked")
+  blockReason String?   @map("block_reason")
+  blockedAt   DateTime? @map("blocked_at")
 
   createdAt DateTime @default(now()) @map("created_at")
 

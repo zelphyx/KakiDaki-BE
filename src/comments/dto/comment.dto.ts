@@ -24,3 +24,14 @@ export class VoteDto {
   @IsIn(['up', 'down'])
   vote: 'up' | 'down';
 }
+
+export class BlockCommentDto {
+  @ApiProperty({
+    example: 'Komentar mengandung ujaran kebencian.',
+    required: false,
+    description: 'Alasan pemblokiran (opsional)',
+  })
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}

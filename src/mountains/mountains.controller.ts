@@ -14,6 +14,8 @@ import { MountainsService } from './mountains.service';
 import { CreateMountainDto, UpdateMountainDto } from './dto/mountain.dto';
 import { ImportMountainDto } from './dto/discovery.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @ApiTags('Mountains')
 @Controller('mountains')
@@ -53,24 +55,27 @@ export class MountainsController {
 
   @Post()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Create a mountain' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '[Admin] Create a mountain manually' })
   create(@Body() dto: CreateMountainDto) {
     return this.mountainsService.create(dto);
   }
 
   @Patch(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Update a mountain' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '[Admin] Update a mountain' })
   update(@Param('id') id: string, @Body() dto: UpdateMountainDto) {
     return this.mountainsService.update(id, dto);
   }
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Delete a mountain' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiOperation({ summary: '[Admin] Delete a mountain' })
   remove(@Param('id') id: string) {
     return this.mountainsService.remove(id);
   }

@@ -12,6 +12,8 @@ export interface WeatherForecast {
   windSpeedMax: number;
   weatherCode: number;
   summary: string;
+  sunrise?: string | null;
+  sunset?: string | null;
 }
 
 @Injectable()
@@ -41,7 +43,7 @@ export class WeatherService {
       latitude,
       longitude,
       daily:
-        'temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,wind_speed_10m_max,weather_code',
+        'temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,wind_speed_10m_max,weather_code,sunrise,sunset',
       timezone: 'auto',
       start_date: start,
       end_date: end,
@@ -58,6 +60,34 @@ export class WeatherService {
     }
   }
 
+  /**
+   * 7-day outlook from today until (and including) the climb start date.
+   * If the climb is more than 7 days away, returns the next 7 days from today.
+   * If within 7 days, returns today..startDate.
+   */
+  async getWeekOutlook(
+    latitude: number,
+    longitude: number,
+    climbStartDate: Date,
+  ): Promise<WeatherForecast[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const daysUntil = Math.ceil(
+      (climbStartDate.getTime() - today.getTime()) / msPerDay,
+    );
+
+    // Cap window at 7 days (Open-Meteo free daily forecast horizon is generous,
+    // but the product spec asks for a 7-day outlook up to H-day).
+    const end =
+      daysUntil >= 0 && daysUntil <= 6
+        ? climbStartDate
+        : new Date(today.getTime() + 6 * msPerDay);
+
+    return this.getForecast(latitude, longitude, today, end);
+  }
+
   private mapDaily(daily: any): WeatherForecast[] {
     if (!daily?.time) return [];
     return daily.time.map((date: string, i: number) => {
@@ -71,6 +101,8 @@ export class WeatherService {
         windSpeedMax: daily.wind_speed_10m_max[i],
         weatherCode: code,
         summary: this.describe(code),
+        sunrise: daily.sunrise?.[i] ?? null,
+        sunset: daily.sunset?.[i] ?? null,
       };
     });
   }
