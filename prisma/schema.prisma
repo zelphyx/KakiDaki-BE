@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                      String   @id @default(cuid())
+  name                    String
+  email                   String   @unique
+  passwordHash            String   @map("password_hash")
+  age                     Int?
+  phone                   String?
+  heightCm                Float?   @map("height_cm")
+  weightKg                Float?   @map("weight_kg")
+  bmi                     Float?
+  medicalHistory          String?  @map("medical_history")
+  hasCompletedAssessment  Boolean  @default(false) @map("has_completed_assessment")
+  isPro                   Boolean  @default(false) @map("is_pro")
+  prepCredits             Int      @default(1) @map("prep_credits")
+  stravaAthleteId         String?  @map("strava_athlete_id")
+  stravaAccessToken       String?  @map("strava_access_token")
+  stravaRefreshToken      String?  @map("strava_refresh_token")
+  stravaTokenExpiry       DateTime? @map("strava_token_expiry")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  fitnessProfile FitnessProfile?
+
+  @@map("users")
+}
+
+model FitnessProfile {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique @map("user_id")
+  source                  String   @default("MANUAL")
+  weeklyDistanceKm        Float?   @map("weekly_distance_km")
+  weeklyElevationM        Float?   @map("weekly_elevation_m")
+  longestHikeKm           Float?   @map("longest_hike_km")
+  avgPaceMinPerKm         Float?   @map("avg_pace_min_per_km")
+  restingHeartRate        Int?     @map("resting_heart_rate")
+  experienceLevel         String?  @map("experience_level")
+  capabilityScore         Float?   @map("capability_score")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("fitness_profiles")
+}
