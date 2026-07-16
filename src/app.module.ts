@@ -1,19 +1,37 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import configuration from './config/configuration';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { MountainsModule } from './mountains/mountains.module';
+import { WeatherModule } from './weather/weather.module';
+import { StravaModule } from './strava/strava.module';
+import { AiModule } from './ai/ai.module';
+import { ExpeditionsModule } from './expeditions/expeditions.module';
+import { LogisticsModule } from './logistics/logistics.module';
+import { CommentsModule } from './comments/comments.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+    }),
+    ScheduleModule.forRoot(),
     PrismaModule,
+    WeatherModule,
+    StravaModule,
+    AiModule,
     AuthModule,
     UsersModule,
+    MountainsModule,
+    ExpeditionsModule,
+    LogisticsModule,
+    CommentsModule,
+    PaymentsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

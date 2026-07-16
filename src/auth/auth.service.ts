@@ -1,19 +1,18 @@
 import {
-  ConflictException,
   Injectable,
   UnauthorizedException,
+  ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
+import { RegisterDto, LoginDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
+    private jwt: JwtService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -35,8 +34,7 @@ export class AuthService {
       },
     });
 
-    const token = this.signToken(user.id, user.email);
-    return { accessToken: token, user: this.sanitize(user) };
+    return this.buildAuthResponse(user.id, user.email, user.name);
   }
 
   async login(dto: LoginDto) {
@@ -52,17 +50,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const token = this.signToken(user.id, user.email);
-    return { accessToken: token, user: this.sanitize(user) };
+    return this.buildAuthResponse(user.id, user.email, user.name);
   }
 
-  private signToken(userId: string, email: string) {
-    return this.jwtService.sign({ sub: userId, email });
-  }
-
-  private sanitize(user: any) {
-    const { passwordHash, stravaAccessToken, stravaRefreshToken, ...rest } =
-      user;
-    return rest;
+  private buildAuthResponse(userId: string, email: string, name: string) {
+    const token = this.jwt.sign({ sub: userId, email });
+    return {
+      accessToken: token,
+      user: { id: userId, email, name },
+    };
   }
 }

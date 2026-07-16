@@ -1,51 +1,286 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id                      String   @id @default(cuid())
-  name                    String
-  email                   String   @unique
-  passwordHash            String   @map("password_hash")
-  age                     Int?
-  phone                   String?
-  heightCm                Float?   @map("height_cm")
-  weightKg                Float?   @map("weight_kg")
-  bmi                     Float?
-  medicalHistory          String?  @map("medical_history")
-  hasCompletedAssessment  Boolean  @default(false) @map("has_completed_assessment")
-  createdAt               DateTime @default(now()) @map("created_at")
-  updatedAt               DateTime @updatedAt @map("updated_at")
+// ============================================================
+// ENUMS
+// ============================================================
 
+enum Difficulty {
+  EASY
+  MODERATE
+  HARD
+  EXTREME
+}
+
+enum PrepStatus {
+  DRAFT
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum Decision {
+  GO
+  CAUTION
+  NO_GO
+}
+
+enum LogisticCategory {
+  CLOTHING
+  FOOD
+  WATER
+  NAVIGATION
+  SHELTER
+  MEDICAL
+  TOOLS
+  DOCUMENTS
+  OTHER
+}
+
+enum ActivityType {
+  RUN
+  RIDE
+  HIKE
+  WALK
+  TRAIL_RUN
+  WORKOUT
+  OTHER
+}
+
+enum FitnessSource {
+  MANUAL
+  STRAVA
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  REFUNDED
+}
+
+// ============================================================
+// USER
+// ============================================================
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  age          Int?
+  phone        String?  @map("phone")
+
+  // Physical assessment (mandatory before first expedition)
+  heightCm     Float?   @map("height_cm") // tb
+  weightKg     Float?   @map("weight_kg") // bb
+  bmi          Float?
+  medicalHistory String? @map("medical_history") // history medic
+
+  // Flags
+  hasCompletedAssessment Boolean @default(false) @map("has_completed_assessment")
+  isPro                  Boolean @default(false) @map("is_pro")
+  prepCredits            Int     @default(1) @map("prep_credits") // free = 1 prep
+
+  // Strava OAuth
+  stravaAthleteId    String?   @map("strava_athlete_id")
+  stravaAccessToken  String?   @map("strava_access_token")
+  stravaRefreshToken String?   @map("strava_refresh_token")
+  stravaTokenExpiry  DateTime? @map("strava_token_expiry")
+
+  // Fitness capability (manual or strava-derived)
   fitnessProfile FitnessProfile?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  expeditions  Expedition[]
+  trainingLogs TrainingLog[]
+  comments     Comment[]
+  payments     Payment[]
 
   @@map("users")
 }
 
-model FitnessProfile {
-  id                      String   @id @default(cuid())
-  userId                  String   @unique @map("user_id")
-  source                  String   @default("MANUAL")
-  weeklyDistanceKm        Float?   @map("weekly_distance_km")
-  weeklyElevationM        Float?   @map("weekly_elevation_m")
-  longestHikeKm           Float?   @map("longest_hike_km")
-  avgPaceMinPerKm         Float?   @map("avg_pace_min_per_km")
-  restingHeartRate        Int?     @map("resting_heart_rate")
-  experienceLevel         String?  @map("experience_level")
-  capabilityScore         Float?   @map("capability_score")
-  createdAt               DateTime @default(now()) @map("created_at")
-  updatedAt               DateTime @updatedAt @map("updated_at")
+// ============================================================
+// FITNESS PROFILE (personalization: manual / strava)
+// ============================================================
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model FitnessProfile {
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  source FitnessSource @default(MANUAL)
+
+  // Self-reported / derived capability metrics
+  weeklyDistanceKm   Float? @map("weekly_distance_km")
+  weeklyElevationM   Float? @map("weekly_elevation_m")
+  longestHikeKm      Float? @map("longest_hike_km")
+  avgPaceMinPerKm    Float? @map("avg_pace_min_per_km")
+  restingHeartRate   Int?   @map("resting_heart_rate")
+  experienceLevel    String? @map("experience_level") // beginner/intermediate/advanced
+
+  // Computed capability score 0-100
+  capabilityScore    Float? @map("capability_score")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("fitness_profiles")
+}
+
+// ============================================================
+// MOUNTAIN
+// ============================================================
+
+model Mountain {
+  id             String     @id @default(uuid())
+  name           String     @unique
+  elevationM     Float      @map("elevation_m") // elevasi gunung
+  difficulty     Difficulty // level kesulitan
+  distanceToPeakKm Float    @map("distance_to_peak_km") // jarak menuju puncak
+  baseTempC      Float?     @map("base_temp_c") // suhu (reference)
+  latitude       Float
+  longitude      Float
+  description    String?
+  imageUrl       String?    @map("image_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  expeditions Expedition[]
+  comments    Comment[]
+
+  @@map("mountains")
+}
+
+// ============================================================
+// EXPEDITION
+// ============================================================
+
+model Expedition {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mountainId String   @map("mountain_id")
+  mountain   Mountain @relation(fields: [mountainId], references: [id])
+
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+
+  // Weather snapshot on climb day (from Open-Meteo)
+  climbTempC     Float?  @map("climb_temp_c")
+  weatherSummary String? @map("weather_summary")
+
+  // AI outputs
+  readinessScore Float?     @map("readiness_score")
+  decision       Decision?
+  aiRationale    String?    @map("ai_rationale")
+
+  memberCount Int        @default(1) @map("member_count") // jumlah anggota
+  status      PrepStatus @default(DRAFT)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  logistics Logistic[]
+
+  @@map("expeditions")
+}
+
+// ============================================================
+// LOGISTIC
+// ============================================================
+
+model Logistic {
+  id           String           @id @default(uuid())
+  expeditionId String           @map("expedition_id")
+  expedition   Expedition       @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+
+  itemName    String           @map("item_name")
+  amount      String // e.g. "2 pcs", "3 liter"
+  category    LogisticCategory @default(OTHER)
+  isMandatory Boolean          @default(false) @map("is_mandatory") // AI-flagged
+  isPacked    Boolean          @default(false) @map("is_packed")
+  note        String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("logistics")
+}
+
+// ============================================================
+// TRAINING LOG (from Strava)
+// ============================================================
+
+model TrainingLog {
+  id              String       @id @default(uuid())
+  userId          String       @map("user_id")
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  stravaActivityId String      @unique @map("strava_activity_id")
+  activityType     ActivityType @default(OTHER) @map("activity_type")
+  distanceKm       Float        @map("distance_km")
+  elevationGainM   Float        @map("elevation_gain_m")
+  movingTimeSec    Int          @map("moving_time_sec") // pace derived
+  avgPaceMinPerKm  Float?       @map("avg_pace_min_per_km")
+  isMandatory      Boolean      @default(false) @map("is_mandatory")
+  startedAt        DateTime     @map("started_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("training_logs")
+}
+
+// ============================================================
+// COMMENT
+// ============================================================
+
+model Comment {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mountainId String   @map("mountain_id")
+  mountain   Mountain @relation(fields: [mountainId], references: [id], onDelete: Cascade)
+
+  text     String
+  imageUrl String? @map("image_url")
+  upvote   Int     @default(0)
+  downvote Int     @default(0)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("comments")
+}
+
+// ============================================================
+// PAYMENT (Midtrans - Pro credits)
+// ============================================================
+
+model Payment {
+  id         String        @id @default(uuid())
+  userId     String        @map("user_id")
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orderId       String        @unique @map("order_id")
+  grossAmount   Float         @map("gross_amount")
+  creditsBought Int           @map("credits_bought")
+  status        PaymentStatus @default(PENDING)
+  snapToken     String?       @map("snap_token")
+  snapRedirectUrl String?     @map("snap_redirect_url")
+  paymentType   String?       @map("payment_type")
+  rawPayload    Json?         @map("raw_payload")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("payments")
 }

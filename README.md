@@ -1,98 +1,167 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# KakiDaki Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend untuk **KakiDaki** — platform persiapan pendakian gunung berbasis AI. Dibangun dengan **NestJS**, **Prisma ORM** (PostgreSQL), dan terintegrasi dengan **Gemini AI**, **Open-Meteo**, **Strava**, dan **Midtrans (sandbox)**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Fitur Utama
 
-## Description
+- **Auth JWT** — register & login.
+- **Assessment wajib** — BMI (tb/bb) + riwayat medis harus diisi sebelum boleh menyusun pendakian.
+- **Personalisasi kemampuan** — manual atau otomatis dari Strava (capability score).
+- **AI Readiness** — Gemini menghitung readiness score, keputusan Go / Caution / No-Go, dan rasional.
+- **Saran logistik AI** — packing list otomatis, item wajib ditandai AI.
+- **Cuaca** — prakiraan Open-Meteo untuk tanggal pendakian.
+- **Strava sync** — tarik aktivitas latihan jadi training logs.
+- **Komentar** — review gunung dengan upvote/downvote.
+- **Pro credits** — free 1x persiapan, beli kredit lewat Midtrans untuk persiapan berikutnya.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+| Komponen | Teknologi |
+|----------|-----------|
+| Framework | NestJS 10 |
+| ORM | Prisma 6 (PostgreSQL) |
+| Auth | JWT (Passport) |
+| AI | Google Gemini API |
+| Cuaca | Open-Meteo API |
+| Fitness | Strava OAuth API |
+| Pembayaran | Midtrans Snap (sandbox) |
+| Dokumentasi | Swagger / OpenAPI |
 
+## Setup
+
+### 1. Prasyarat
+- Node.js 18+
+- PostgreSQL 14+
+
+### 2. Install
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
-
+### 3. Environment
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
+# lalu isi kredensial: DATABASE_URL, JWT_SECRET, GEMINI_API_KEY,
+# STRAVA_CLIENT_ID/SECRET, MIDTRANS_SERVER_KEY/CLIENT_KEY
 ```
 
-## Run tests
-
+### 4. Database
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run prisma:generate
+npm run prisma:migrate      # buat & terapkan migrasi
+npm run prisma:seed         # isi data gunung contoh
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 5. Jalankan
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- API base: `http://localhost:3000/api/v1`
+- Swagger docs: `http://localhost:3000/api/docs`
 
-## Resources
+## Alur Penggunaan
 
-Check out a few resources that may come in handy when working with NestJS:
+```mermaid
+flowchart TD
+    A[Register / Login] --> B{Sudah isi assessment?}
+    B -- Belum --> C[Isi BMI + Medical History]
+    B -- Sudah --> D[Pilih Gunung]
+    C --> D
+    D --> E{Punya credit?}
+    E -- Tidak --> F[Beli Pro via Midtrans]
+    E -- Ya --> G[Buat Ekspedisi]
+    F --> G
+    G --> H[AI: Readiness + Cuaca + Decision]
+    H --> I[Generate Logistik AI]
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Ringkasan Endpoint
 
-## Support
+### Auth
+| Method | Path | Keterangan |
+|--------|------|-----------|
+| POST | `/auth/register` | Daftar akun |
+| POST | `/auth/login` | Login, dapat JWT |
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Users
+| Method | Path | Keterangan |
+|--------|------|-----------|
+| GET | `/users/me` | Profil saya |
+| PATCH | `/users/me` | Update profil |
+| POST | `/users/me/assessment` | Isi assessment wajib (BMI + medis) |
 
-## Stay in touch
+### Mountains
+| Method | Path | Keterangan |
+|--------|------|-----------|
+| GET | `/mountains` | List gunung |
+| GET | `/mountains/search?q=` | Cari gunung publik (OpenStreetMap/Nominatim + elevasi Open-Meteo) |
+| POST | `/mountains/import` | Import gunung hasil pencarian ke katalog (auth) |
+| GET | `/mountains/:id` | Detail gunung |
+| POST | `/mountains` | Tambah gunung manual (auth) |
+| PATCH | `/mountains/:id` | Update gunung (auth) |
+| DELETE | `/mountains/:id` | Hapus gunung (auth) |
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Expeditions
+| Method | Path | Keterangan |
+|--------|------|-----------|
+| POST | `/expeditions` | Buat persiapan (pakai 1 credit, jalankan AI) |
+| GET | `/expeditions` | List ekspedisi saya |
+| GET | `/expeditions/:id` | Detail + logistik |
+| POST | `/expeditions/:id/reanalyze` | Analisis ulang AI + cuaca |
 
-## License
+### Logistics
+| Method | Path | Keterangan |
+|--------|------|-----------|
+| GET | `/expeditions/:id/logistics` | List logistik |
+| POST | `/expeditions/:id/logistics/generate` | Generate saran AI |
+| POST | `/expeditions/:id/logistics` | Tambah item manual |
+| PATCH | `/logistics/:itemId` | Update item (mis. tandai packed) |
+| DELETE | `/logistics/:itemId` | Hapus item |
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Strava
+| Method | Path | Keterangan |
+|--------|------|-----------|
+| GET | `/strava/connect` | Dapat URL OAuth |
+| GET | `/strava/callback` | Callback OAuth |
+| POST | `/strava/sync` | Sinkron aktivitas |
+| GET | `/strava/training-logs` | List training logs |
+
+### Comments
+| Method | Path | Keterangan |
+|--------|------|-----------|
+| GET | `/mountains/:id/comments` | List komentar |
+| POST | `/comments` | Posting komentar (auth) |
+| POST | `/comments/:id/vote` | Upvote/downvote |
+| DELETE | `/comments/:id` | Hapus komentar sendiri |
+
+### Payments
+| Method | Path | Keterangan |
+|--------|------|-----------|
+| GET | `/payments/pricing` | Harga per credit |
+| POST | `/payments/checkout` | Buat transaksi Midtrans |
+| POST | `/payments/notification` | Webhook Midtrans |
+| GET | `/payments/history` | Riwayat pembayaran |
+
+## Cara Kerja AI
+
+1. **Input**: profil user (umur, BMI, riwayat medis, capability score), data gunung (elevasi, kesulitan, jarak), cuaca hari-H, jumlah anggota.
+2. **Readiness**: Gemini mengembalikan `readinessScore` (0–100), `decision` (GO/CAUTION/NO_GO), dan `rationale`.
+3. **Logistik**: Gemini menyusun packing list dengan kategori dan flag `isMandatory`.
+4. **Fallback**: bila AI tidak tersedia, heuristik cadangan tetap memberi skor & daftar dasar.
+
+## Model Bisnis Pro
+
+- User baru dapat **1 credit gratis** (`prepCredits = 1`).
+- Setiap pembuatan ekspedisi memakai **1 credit**.
+- Habis credit → beli lewat Midtrans (`/payments/checkout`), harga per credit di `PRO_PRICE_PER_CREDIT`.
+- Webhook Midtrans menambah credit & set `isPro = true` saat pembayaran `settlement`.
+
+## Catatan Keamanan
+
+- Endpoint `/payments/notification` sebaiknya diverifikasi signature Midtrans di produksi.
+- CORS saat ini `*` — batasi origin sebelum produksi.
+- Simpan secret di `.env`, jangan commit.
+
+## Lisensi
+UNLICENSED — internal project.
