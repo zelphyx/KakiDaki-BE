@@ -1,0 +1,647 @@
+{
+  "info": {
+    "name": "KakiDaki API",
+    "description": "KakiDaki - Mountain climbing preparation platform.\n\n## Flow Utama:\n1. Register / Login\n2. Isi Assessment (BMI + Medical History) — WAJIB sebelum pendakian\n3. (Opsional) Set Fitness Profile manual atau connect Strava\n4. Cari gunung (search publik atau list katalog)\n5. Buat Ekspedisi (pakai 1 credit, AI readiness + cuaca otomatis)\n6. Generate Logistik AI\n7. (Opsional) Beli credit Pro via Midtrans\n\nBase URL: {{baseUrl}}\nSwagger: {{baseUrl}}/api/docs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.kakidaki.my.id/api/v1" },
+    { "key": "token", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "mountainId", "value": "" },
+    { "key": "expeditionId", "value": "" },
+    { "key": "logisticItemId", "value": "" },
+    { "key": "commentId", "value": "" },
+    { "key": "orderId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('token', json.accessToken);",
+                  "  pm.collectionVariables.set('userId', json.user.id);",
+                  "  console.log('Token saved: ' + json.accessToken.substring(0,20) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Budi Pendaki\",\n  \"email\": \"budi@example.com\",\n  \"password\": \"secret123\",\n  \"age\": 28,\n  \"phone\": \"+628123456789\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('token', json.accessToken);",
+                  "  pm.collectionVariables.set('userId', json.user.id);",
+                  "  console.log('Token saved: ' + json.accessToken.substring(0,20) + '...');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"budi@example.com\",\n  \"password\": \"secret123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Users — Profile & Assessment",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Budi Pendaki Updated\",\n  \"age\": 29,\n  \"phone\": \"+628123456789\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Submit Assessment (WAJIB sebelum pendakian)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/me/assessment", "host": ["{{baseUrl}}"], "path": ["users", "me", "assessment"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"heightCm\": 170,\n  \"weightKg\": 65,\n  \"medicalHistory\": \"Tidak ada riwayat asma, jantung, atau hipertensi. Kondisi sehat.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get My Fitness Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/users/me/fitness-profile", "host": ["{{baseUrl}}"], "path": ["users", "me", "fitness-profile"] }
+          }
+        },
+        {
+          "name": "Set Fitness Profile (Manual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/me/fitness-profile", "host": ["{{baseUrl}}"], "path": ["users", "me", "fitness-profile"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weeklyDistanceKm\": 25,\n  \"weeklyElevationM\": 1200,\n  \"longestHikeKm\": 15,\n  \"avgPaceMinPerKm\": 6.5,\n  \"restingHeartRate\": 60,\n  \"experienceLevel\": \"intermediate\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Mountains",
+      "item": [
+        {
+          "name": "List All Mountains",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.length > 0) {",
+                  "  pm.collectionVariables.set('mountainId', json[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/mountains", "host": ["{{baseUrl}}"], "path": ["mountains"] }
+          }
+        },
+        {
+          "name": "Search Public Peaks (OpenStreetMap)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/mountains/search?q=semeru", "host": ["{{baseUrl}}"], "path": ["mountains", "search"], "query": [{ "key": "q", "value": "semeru" }] }
+          }
+        },
+        {
+          "name": "Import Mountain from Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('mountainId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/mountains/import", "host": ["{{baseUrl}}"], "path": ["mountains", "import"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gunung Merbabu\",\n  \"elevationM\": 3062,\n  \"latitude\": -7.4524,\n  \"longitude\": 110.4408,\n  \"description\": \"Gunung berapi di Jawa Tengah, populer untuk pendaki menengah.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Mountain by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/mountains/{{mountainId}}", "host": ["{{baseUrl}}"], "path": ["mountains", "{{mountainId}}"] }
+          }
+        },
+        {
+          "name": "Create Mountain (Manual)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('mountainId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/mountains", "host": ["{{baseUrl}}"], "path": ["mountains"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gunung Kerinci\",\n  \"elevationM\": 3805,\n  \"difficulty\": \"EXTREME\",\n  \"distanceToPeakKm\": 15,\n  \"baseTempC\": 8,\n  \"latitude\": -2.0,\n  \"longitude\": 101.2647,\n  \"description\": \"Gunung tertinggi di Sumatra.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Mountain",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/mountains/{{mountainId}}", "host": ["{{baseUrl}}"], "path": ["mountains", "{{mountainId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description here.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Mountain",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/mountains/{{mountainId}}", "host": ["{{baseUrl}}"], "path": ["mountains", "{{mountainId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Strava",
+      "item": [
+        {
+          "name": "Get Strava OAuth URL",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/strava/connect", "host": ["{{baseUrl}}"], "path": ["strava", "connect"] }
+          }
+        },
+        {
+          "name": "Strava OAuth Callback (redirect target)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/strava/callback?code=STRAVA_AUTH_CODE&state={{userId}}", "host": ["{{baseUrl}}"], "path": ["strava", "callback"], "query": [{ "key": "code", "value": "STRAVA_AUTH_CODE" }, { "key": "state", "value": "{{userId}}" }] }
+          }
+        },
+        {
+          "name": "Sync Strava Activities",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/strava/sync", "host": ["{{baseUrl}}"], "path": ["strava", "sync"] }
+          }
+        },
+        {
+          "name": "List Training Logs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/strava/training-logs", "host": ["{{baseUrl}}"], "path": ["strava", "training-logs"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Expeditions",
+      "item": [
+        {
+          "name": "Create Expedition (pakai 1 credit + AI readiness)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.expedition) {",
+                  "  pm.collectionVariables.set('expeditionId', json.expedition.id);",
+                  "} else if (json.id) {",
+                  "  pm.collectionVariables.set('expeditionId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/expeditions", "host": ["{{baseUrl}}"], "path": ["expeditions"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mountainId\": \"{{mountainId}}\",\n  \"startDate\": \"2026-08-17\",\n  \"endDate\": \"2026-08-19\",\n  \"memberCount\": 4\n}"
+            }
+          }
+        },
+        {
+          "name": "List My Expeditions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/expeditions", "host": ["{{baseUrl}}"], "path": ["expeditions"] }
+          }
+        },
+        {
+          "name": "Get Expedition Detail (+ logistics)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/expeditions/{{expeditionId}}", "host": ["{{baseUrl}}"], "path": ["expeditions", "{{expeditionId}}"] }
+          }
+        },
+        {
+          "name": "Re-analyze Expedition (AI + weather refresh)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/expeditions/{{expeditionId}}/reanalyze", "host": ["{{baseUrl}}"], "path": ["expeditions", "{{expeditionId}}", "reanalyze"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Logistics",
+      "item": [
+        {
+          "name": "Generate AI Packing List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (Array.isArray(json) && json.length > 0) {",
+                  "  pm.collectionVariables.set('logisticItemId', json[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/expeditions/{{expeditionId}}/logistics/generate", "host": ["{{baseUrl}}"], "path": ["expeditions", "{{expeditionId}}", "logistics", "generate"] }
+          }
+        },
+        {
+          "name": "List Logistics for Expedition",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/expeditions/{{expeditionId}}/logistics", "host": ["{{baseUrl}}"], "path": ["expeditions", "{{expeditionId}}", "logistics"] }
+          }
+        },
+        {
+          "name": "Add Logistic Item (Manual)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('logisticItemId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/expeditions/{{expeditionId}}/logistics", "host": ["{{baseUrl}}"], "path": ["expeditions", "{{expeditionId}}", "logistics"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemName\": \"Power bank 20000mAh\",\n  \"amount\": \"1 pcs\",\n  \"category\": \"TOOLS\",\n  \"isMandatory\": false,\n  \"note\": \"Untuk HP dan headlamp\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Logistic Item (e.g. mark packed)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/logistics/{{logisticItemId}}", "host": ["{{baseUrl}}"], "path": ["logistics", "{{logisticItemId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isPacked\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Logistic Item",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/logistics/{{logisticItemId}}", "host": ["{{baseUrl}}"], "path": ["logistics", "{{logisticItemId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Comments",
+      "item": [
+        {
+          "name": "List Comments for Mountain",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/mountains/{{mountainId}}/comments", "host": ["{{baseUrl}}"], "path": ["mountains", "{{mountainId}}", "comments"] }
+          }
+        },
+        {
+          "name": "Post Comment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) {",
+                  "  pm.collectionVariables.set('commentId', json.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/comments", "host": ["{{baseUrl}}"], "path": ["comments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mountainId\": \"{{mountainId}}\",\n  \"text\": \"Jalur via Ranu Pani cukup licin saat hujan, hati-hati.\",\n  \"imageUrl\": \"https://example.com/photo.jpg\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Upvote Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/comments/{{commentId}}/vote", "host": ["{{baseUrl}}"], "path": ["comments", "{{commentId}}", "vote"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vote\": \"up\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Downvote Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/comments/{{commentId}}/vote", "host": ["{{baseUrl}}"], "path": ["comments", "{{commentId}}", "vote"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vote\": \"down\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete My Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/comments/{{commentId}}", "host": ["{{baseUrl}}"], "path": ["comments", "{{commentId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Payments (Midtrans)",
+      "item": [
+        {
+          "name": "Get Pricing",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/payments/pricing", "host": ["{{baseUrl}}"], "path": ["payments", "pricing"] }
+          }
+        },
+        {
+          "name": "Checkout (Create Midtrans Transaction)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.orderId) {",
+                  "  pm.collectionVariables.set('orderId', json.orderId);",
+                  "  console.log('Order ID: ' + json.orderId);",
+                  "  console.log('Snap Token: ' + json.snapToken);",
+                  "  console.log('Redirect URL: ' + json.redirectUrl);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/payments/checkout", "host": ["{{baseUrl}}"], "path": ["payments", "checkout"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"credits\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "Simulate Webhook (settlement — perlu signature valid)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/payments/notification", "host": ["{{baseUrl}}"], "path": ["payments", "notification"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"{{orderId}}\",\n  \"status_code\": \"200\",\n  \"gross_amount\": \"75000.00\",\n  \"transaction_status\": \"settlement\",\n  \"fraud_status\": \"accept\",\n  \"payment_type\": \"bank_transfer\",\n  \"signature_key\": \"PASTE_SHA512_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List My Payment History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/payments/history", "host": ["{{baseUrl}}"], "path": ["payments", "history"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Error Scenarios (Testing)",
+      "item": [
+        {
+          "name": "Create Expedition WITHOUT Assessment (should 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/expeditions", "host": ["{{baseUrl}}"], "path": ["expeditions"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mountainId\": \"{{mountainId}}\",\n  \"startDate\": \"2026-08-17\",\n  \"endDate\": \"2026-08-19\",\n  \"memberCount\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Expedition with NO Credits (should 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/expeditions", "host": ["{{baseUrl}}"], "path": ["expeditions"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mountainId\": \"{{mountainId}}\",\n  \"startDate\": \"2026-09-01\",\n  \"endDate\": \"2026-09-03\",\n  \"memberCount\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Access Protected Route Without Token (should 401)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "Webhook with Invalid Signature (should 403)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/payments/notification", "host": ["{{baseUrl}}"], "path": ["payments", "notification"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": \"fake-order\",\n  \"status_code\": \"200\",\n  \"gross_amount\": \"25000.00\",\n  \"transaction_status\": \"settlement\",\n  \"signature_key\": \"invalid_signature_here\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

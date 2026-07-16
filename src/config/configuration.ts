@@ -1,6 +1,6 @@
 export default () => ({
   port: parseInt(process.env.PORT ?? '3000', 10) || 3000,
-  appUrl: process.env.APP_URL || 'http://localhost:3000',
+  appUrl: process.env.APP_URL || 'https://api.kakidaki.my.id',
   jwt: {
     secret: process.env.JWT_SECRET || 'dev_secret',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
