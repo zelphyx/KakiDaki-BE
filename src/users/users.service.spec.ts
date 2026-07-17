@@ -45,7 +45,6 @@ describe('UsersService', () => {
         medicalHistory: 'none',
       });
 
-      // 65 / (1.7^2) = 22.49 -> 22.5, category Normal
       expect(prismaMock.user.update).toHaveBeenCalled();
       const updateArg = prismaMock.user.update.mock.calls[0][0];
       expect(updateArg.data.bmi).toBeCloseTo(22.5, 1);
@@ -83,7 +82,6 @@ describe('UsersService', () => {
         experienceLevel: 'advanced',
       });
 
-      // Max: 35 + 30 + 20 + 15 = 100
       expect(result.capabilityScore).toBeCloseTo(100, 0);
       expect(result.source).toBe('MANUAL');
     });

@@ -28,7 +28,6 @@ export class CommentsService {
   }
 
   listByMountain(mountainId: string) {
-    // Public listing hides blocked comments
     return this.prisma.comment.findMany({
       where: { mountainId, isBlocked: false },
       include: {
@@ -62,7 +61,6 @@ export class CommentsService {
     return { message: 'Comment deleted' };
   }
 
-  // ===== Admin moderation =====
 
   /**
    * List all comments for a mountain including blocked ones (admin view).

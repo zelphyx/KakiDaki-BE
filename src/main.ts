@@ -12,7 +12,6 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
-  // Serve uploaded files statically
   app.useStaticAssets(path.join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
   });
@@ -45,6 +44,7 @@ async function bootstrap() {
     .addTag('Google Fit')
     .addTag('Comments')
     .addTag('Payments')
+    .addTag('Vision')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

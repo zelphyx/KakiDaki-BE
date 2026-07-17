@@ -61,7 +61,6 @@ export class CommentsController {
     return this.commentsService.remove(userId, id);
   }
 
-  // ===== Admin moderation =====
 
   @Get('admin/comments')
   @ApiBearerAuth()

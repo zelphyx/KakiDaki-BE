@@ -9,7 +9,6 @@ import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaymentDto } from './dto/payment.dto';
 import { PaymentStatus } from '@prisma/client';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const midtransClient = require('midtrans-client');
 
 @Injectable()
@@ -160,7 +159,6 @@ export class PaymentsService {
         },
       });
 
-      // Fulfill credits only on first transition to PAID
       if (newStatus === PaymentStatus.PAID && !wasPaid) {
         await tx.user.update({
           where: { id: payment.userId },

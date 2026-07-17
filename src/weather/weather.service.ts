@@ -78,8 +78,6 @@ export class WeatherService {
       (climbStartDate.getTime() - today.getTime()) / msPerDay,
     );
 
-    // Cap window at 7 days (Open-Meteo free daily forecast horizon is generous,
-    // but the product spec asks for a 7-day outlook up to H-day).
     const end =
       daysUntil >= 0 && daysUntil <= 6
         ? climbStartDate

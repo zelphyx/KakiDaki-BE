@@ -94,7 +94,6 @@ export class LogisticsService {
       memberCount: expedition.memberCount,
     });
 
-    // Replace existing AI-generated set: clear then insert
     await this.prisma.logistic.deleteMany({ where: { expeditionId } });
 
     const created = await this.prisma.$transaction(

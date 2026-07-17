@@ -37,7 +37,6 @@ export class CreateExpeditionDto {
   @Min(1)
   memberCount: number;
 
-  // ---- Optional per-expedition overrides (default: taken from profile) ----
 
   @ApiProperty({ example: 28, required: false, description: 'Override umur' })
   @IsOptional()

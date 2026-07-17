@@ -23,14 +23,12 @@ export class ExpeditionsService {
     });
     if (!user) throw new NotFoundException('User not found');
 
-    // Mandatory assessment gate
     if (!user.hasCompletedAssessment) {
       throw new ForbiddenException(
         'Please complete your health assessment (BMI + medical history) before preparing an expedition',
       );
     }
 
-    // Pro / credit gate
     if (user.prepCredits <= 0) {
       throw new ForbiddenException(
         'You have used your free preparation. Upgrade to Pro to prepare more expeditions.',
@@ -48,7 +46,6 @@ export class ExpeditionsService {
       throw new BadRequestException('endDate must be after startDate');
     }
 
-    // Create expedition draft + decrement credit atomically
     const expedition = await this.prisma.$transaction(async (tx) => {
       const created = await tx.expedition.create({
         data: {
@@ -66,7 +63,6 @@ export class ExpeditionsService {
       return created;
     });
 
-    // Run AI analysis immediately
     return this.analyze(userId, expedition.id);
   }
 
@@ -85,7 +81,6 @@ export class ExpeditionsService {
     if (!user) throw new NotFoundException('User not found');
     if (!mountain) throw new NotFoundException('Mountain not found');
 
-    // Weather for climb day(s)
     const forecasts = await this.weather.getForecast(
       mountain.latitude,
       mountain.longitude,
@@ -94,14 +89,12 @@ export class ExpeditionsService {
     );
     const climbDay = forecasts[0];
 
-    // 7-day outlook from today until H-day (climb start)
     const weekOutlook = await this.weather.getWeekOutlook(
       mountain.latitude,
       mountain.longitude,
       expedition.startDate,
     );
 
-    // Best time to leave to catch sunrise at the summit
     const summitTiming = this.computeSummitSunriseTiming(
       climbDay?.sunrise ?? null,
       mountain.distanceToPeakKm,
@@ -173,8 +166,6 @@ export class ExpeditionsService {
     const sunrise = new Date(sunriseIso);
     if (isNaN(sunrise.getTime())) return null;
 
-    // Hiking uphill is much slower than a Strava run pace. Apply a terrain
-    // factor so the estimate is realistic for summit ascent.
     const TERRAIN_FACTOR = 2.5;
     const FALLBACK_PACE_MIN_PER_KM = 20;
     const basePace = avgPaceMinPerKm ?? FALLBACK_PACE_MIN_PER_KM;
@@ -183,7 +174,6 @@ export class ExpeditionsService {
       : FALLBACK_PACE_MIN_PER_KM;
 
     const ascentMinutes = Math.round(distanceToPeakKm * effectivePace);
-    // 15 min buffer to settle in before sunrise
     const bufferMinutes = 15;
     const departure = new Date(
       sunrise.getTime() - (ascentMinutes + bufferMinutes) * 60 * 1000,

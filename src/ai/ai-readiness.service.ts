@@ -51,7 +51,6 @@ export class AiReadinessService {
     if (result && typeof result.readinessScore === 'number') {
       return result;
     }
-    // Fallback heuristic if AI unavailable
     return this.fallbackReadiness(input);
   }
 
@@ -127,16 +126,11 @@ Return JSON exactly:
     const cap = input.user.capabilityScore;
     if (typeof cap === 'number') score = 0.6 * cap + 40;
 
-    // Gender-based physiological risk adjustment
-    // Female climbers face higher risk at extreme altitude due to lower
-    // hemoglobin mass; apply penalty proportional to elevation.
     const gender = input.user.gender;
     const elev = input.mountain.elevationM;
     if (gender === 'FEMALE' && elev > 3500) {
       score -= Math.min((elev - 3500) / 500, 3) * 3; // -3 to -9
     }
-    // Male climbers have slightly higher cardiovascular risk at moderate
-    // altitude if BMI is elevated.
     if (gender === 'MALE' && (input.user.bmi ?? 22) >= 27) {
       score -= 5;
     }
