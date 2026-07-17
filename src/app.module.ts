@@ -7,7 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { MountainsModule } from './mountains/mountains.module';
 import { WeatherModule } from './weather/weather.module';
-import { StravaModule } from './strava/strava.module';
+import { GoogleFitModule } from './google-fit/google-fit.module';
 import { AiModule } from './ai/ai.module';
 import { ExpeditionsModule } from './expeditions/expeditions.module';
 import { LogisticsModule } from './logistics/logistics.module';
@@ -24,7 +24,7 @@ import { VisionModule } from './vision/vision.module';
     ScheduleModule.forRoot(),
     PrismaModule,
     WeatherModule,
-    StravaModule,
+    GoogleFitModule,
     AiModule,
     AuthModule,
     UsersModule,

@@ -116,7 +116,7 @@ export class UsersService {
   }
 
   private sanitize(user: any) {
-    const { passwordHash, stravaAccessToken, stravaRefreshToken, ...rest } =
+    const { passwordHash, googleFitAccessToken, googleFitRefreshToken, ...rest } =
       user;
     return rest;
   }

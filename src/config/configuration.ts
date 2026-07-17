@@ -13,10 +13,10 @@ export default () => ({
     apiKey: process.env.OPENROUTER_API_KEY,
     model: process.env.OPENROUTER_MODEL || 'google/gemini-2.5-flash',
   },
-  strava: {
-    clientId: process.env.STRAVA_CLIENT_ID,
-    clientSecret: process.env.STRAVA_CLIENT_SECRET,
-    redirectUri: process.env.STRAVA_REDIRECT_URI,
+  googleFit: {
+    clientId: process.env.GOOGLE_FIT_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_FIT_CLIENT_SECRET,
+    redirectUri: process.env.GOOGLE_FIT_REDIRECT_URI,
   },
   openMeteo: {
     baseUrl:

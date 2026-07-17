@@ -33,7 +33,7 @@ async function bootstrap() {
     .setDescription(
       'Backend API for KakiDaki - mountain climbing preparation platform. ' +
         'Features: AI readiness scoring, logistics suggestions, go/no-go decisions, ' +
-        'Strava sync, weather forecasts, and Pro credit payments via Midtrans.',
+        'Google Fit sync, weather forecasts, and Pro credit payments via Midtrans.',
     )
     .setVersion('1.0')
     .addBearerAuth()
@@ -42,7 +42,7 @@ async function bootstrap() {
     .addTag('Mountains')
     .addTag('Expeditions')
     .addTag('Logistics')
-    .addTag('Strava')
+    .addTag('Google Fit')
     .addTag('Comments')
     .addTag('Payments')
     .build();

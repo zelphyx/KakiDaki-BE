@@ -55,7 +55,7 @@ enum ActivityType {
 
 enum FitnessSource {
   MANUAL
-  STRAVA
+  GOOGLE_FIT
 }
 
 enum PaymentStatus {
@@ -106,13 +106,12 @@ model User {
   isPro                  Boolean @default(false) @map("is_pro")
   prepCredits            Int     @default(1) @map("prep_credits") // free = 1 prep
 
-  // Strava OAuth
-  stravaAthleteId    String?   @map("strava_athlete_id")
-  stravaAccessToken  String?   @map("strava_access_token")
-  stravaRefreshToken String?   @map("strava_refresh_token")
-  stravaTokenExpiry  DateTime? @map("strava_token_expiry")
+  // Google Fit OAuth
+  googleFitAccessToken  String?   @map("google_fit_access_token")
+  googleFitRefreshToken String?   @map("google_fit_refresh_token")
+  googleFitTokenExpiry  DateTime? @map("google_fit_token_expiry")
 
-  // Fitness capability (manual or strava-derived)
+  // Fitness capability (manual or google-fit-derived)
   fitnessProfile FitnessProfile?
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -235,7 +234,7 @@ model Logistic {
 }
 
 // ============================================================
-// TRAINING LOG (from Strava)
+// TRAINING LOG (from Google Fit)
 // ============================================================
 
 model TrainingLog {
@@ -243,11 +242,11 @@ model TrainingLog {
   userId          String       @map("user_id")
   user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  stravaActivityId String      @unique @map("strava_activity_id")
+  externalActivityId String    @unique @map("external_activity_id")
   activityType     ActivityType @default(OTHER) @map("activity_type")
   distanceKm       Float        @map("distance_km")
   elevationGainM   Float        @map("elevation_gain_m")
-  movingTimeSec    Int          @map("moving_time_sec") // pace derived
+  movingTimeSec    Int          @map("moving_time_sec")
   avgPaceMinPerKm  Float?       @map("avg_pace_min_per_km")
   isMandatory      Boolean      @default(false) @map("is_mandatory")
   startedAt        DateTime     @map("started_at")

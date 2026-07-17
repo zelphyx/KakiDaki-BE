@@ -160,7 +160,7 @@ export class ExpeditionsService {
   /**
    * Compute the recommended departure time to reach the summit for sunrise.
    * Uses the climb-day sunrise (Open-Meteo), the mountain's distance to peak,
-   * and the user's average hiking pace (from Strava training, min/km).
+   * and the user's average hiking pace (from Google Fit training, min/km).
    * Falls back to a conservative 20 min/km if pace is unknown.
    */
   private computeSummitSunriseTiming(
