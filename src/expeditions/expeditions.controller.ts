@@ -56,4 +56,13 @@ export class ExpeditionsController {
   ) {
     return this.expeditionsService.analyze(userId, id);
   }
+
+  @Get(':id/weather')
+  @ApiOperation({ summary: 'Get 7-day weather outlook up to climb day' })
+  getWeather(
+    @CurrentUser('userId') userId: string,
+    @Param('id') id: string,
+  ) {
+    return this.expeditionsService.getWeather(userId, id);
+  }
 }

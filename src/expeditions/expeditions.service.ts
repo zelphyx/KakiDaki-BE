@@ -259,4 +259,20 @@ export class ExpeditionsService {
     if (!expedition) throw new NotFoundException('Expedition not found');
     return expedition;
   }
+
+  async getWeather(userId: string, expeditionId: string) {
+    const expedition = await this.getOwned(userId, expeditionId);
+    const mountain = await this.prisma.mountain.findUnique({
+      where: { id: expedition.mountainId },
+    });
+    if (!mountain) throw new NotFoundException('Mountain not found');
+
+    const weekOutlook = await this.weather.getWeekOutlook(
+      mountain.latitude,
+      mountain.longitude,
+      expedition.startDate,
+    );
+
+    return { weekOutlook };
+  }
 }
