@@ -7,6 +7,11 @@ export class CreateCommentDto {
   @IsNotEmpty()
   mountainId: string;
 
+  @ApiProperty({ example: 'via Purwosari', description: 'Jalur naik gunung' })
+  @IsString()
+  @IsNotEmpty()
+  trailName: string;
+
   @ApiProperty({ example: 'Jalur via Ranu Pani cukup licin saat hujan.' })
   @IsString()
   @IsNotEmpty()

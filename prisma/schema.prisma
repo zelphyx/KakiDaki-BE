@@ -268,10 +268,11 @@ model Comment {
   mountainId String   @map("mountain_id")
   mountain   Mountain @relation(fields: [mountainId], references: [id], onDelete: Cascade)
 
-  text     String
-  imageUrl String? @map("image_url")
-  upvote   Int     @default(0)
-  downvote Int     @default(0)
+  text      String
+  trailName String? @map("trail_name") // "via Purwosari", "via Ranu Pani", dll
+  imageUrl  String? @map("image_url")
+  upvote    Int     @default(0)
+  downvote  Int     @default(0)
 
   // Moderation (admin)
   isBlocked   Boolean   @default(false) @map("is_blocked")

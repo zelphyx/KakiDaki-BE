@@ -16,10 +16,14 @@ export class CommentsService {
       data: {
         userId,
         mountainId: dto.mountainId,
+        trailName: dto.trailName,
         text: dto.text,
         imageUrl: dto.imageUrl,
       },
-      include: { user: { select: { id: true, name: true } } },
+      include: {
+        user: { select: { id: true, name: true } },
+        mountain: { select: { id: true, name: true } },
+      },
     });
   }
 
@@ -27,7 +31,10 @@ export class CommentsService {
     // Public listing hides blocked comments
     return this.prisma.comment.findMany({
       where: { mountainId, isBlocked: false },
-      include: { user: { select: { id: true, name: true } } },
+      include: {
+        user: { select: { id: true, name: true } },
+        mountain: { select: { id: true, name: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
