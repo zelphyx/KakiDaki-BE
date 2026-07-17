@@ -39,6 +39,7 @@ describe('UsersService', () => {
       });
 
       const result = await service.submitAssessment('u1', {
+        gender: 'MALE',
         heightCm: 170,
         weightKg: 65,
         medicalHistory: 'none',
@@ -59,6 +60,7 @@ describe('UsersService', () => {
         passwordHash: 'secret',
       });
       const result: any = await service.submitAssessment('u1', {
+        gender: 'FEMALE',
         heightCm: 170,
         weightKg: 65,
         medicalHistory: 'none',

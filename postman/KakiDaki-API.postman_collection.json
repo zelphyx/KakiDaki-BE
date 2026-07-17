@@ -113,7 +113,7 @@
             "url": { "raw": "{{baseUrl}}/users/me/assessment", "host": ["{{baseUrl}}"], "path": ["users", "me", "assessment"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"heightCm\": 170,\n  \"weightKg\": 65,\n  \"respiratoryHeartHistory\": \"Asma ringan, terkontrol dengan inhaler.\",\n  \"physicalInjuryHistory\": \"Pernah cedera lutut kiri 2023, sudah pulih.\",\n  \"weatherDrugAllergy\": \"Alergi dingin, alergi obat golongan penisilin.\"\n}"
+              "raw": "{\n  \"gender\": \"MALE\",\n  \"heightCm\": 170,\n  \"weightKg\": 65,\n  \"respiratoryHeartHistory\": \"Asma ringan, terkontrol dengan inhaler.\",\n  \"physicalInjuryHistory\": \"Pernah cedera lutut kiri 2023, sudah pulih.\",\n  \"weatherDrugAllergy\": \"Alergi dingin, alergi obat golongan penisilin.\"\n}"
             }
           }
         },

@@ -4,6 +4,7 @@ import { GeminiService } from './gemini.service';
 export interface ReadinessInput {
   user: {
     age?: number | null;
+    gender?: string | null;
     bmi?: number | null;
     medicalHistory?: string | null;
     capabilityScore?: number | null;
@@ -71,6 +72,7 @@ Analyze the climber's readiness and return ONLY JSON.
 
 Climber:
 - Age: ${input.user.age ?? 'unknown'}
+- Gender: ${input.user.gender ?? 'unknown'}
 - BMI: ${input.user.bmi ?? 'unknown'}
 - Medical history: ${input.user.medicalHistory ?? 'none provided'}
 - Fitness capability score (0-100): ${input.user.capabilityScore ?? 'unknown'}
@@ -124,6 +126,20 @@ Return JSON exactly:
     let score = 60;
     const cap = input.user.capabilityScore;
     if (typeof cap === 'number') score = 0.6 * cap + 40;
+
+    // Gender-based physiological risk adjustment
+    // Female climbers face higher risk at extreme altitude due to lower
+    // hemoglobin mass; apply penalty proportional to elevation.
+    const gender = input.user.gender;
+    const elev = input.mountain.elevationM;
+    if (gender === 'FEMALE' && elev > 3500) {
+      score -= Math.min((elev - 3500) / 500, 3) * 3; // -3 to -9
+    }
+    // Male climbers have slightly higher cardiovascular risk at moderate
+    // altitude if BMI is elevated.
+    if (gender === 'MALE' && (input.user.bmi ?? 22) >= 27) {
+      score -= 5;
+    }
 
     if (input.mountain.difficulty === 'HARD') score -= 10;
     if (input.mountain.difficulty === 'EXTREME') score -= 20;

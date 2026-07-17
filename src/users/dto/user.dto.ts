@@ -35,6 +35,10 @@ export class UpdateProfileDto {
 }
 
 export class AssessmentDto {
+  @ApiProperty({ enum: Gender, example: Gender.MALE, description: 'Jenis kelamin' })
+  @IsEnum(Gender)
+  gender: Gender;
+
   @ApiProperty({ example: 170, description: 'Height in cm (tb)' })
   @IsNumber()
   @Min(50)

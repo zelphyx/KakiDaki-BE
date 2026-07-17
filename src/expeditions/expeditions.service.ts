@@ -111,6 +111,7 @@ export class ExpeditionsService {
     const aiInput = {
       user: {
         age: user.age,
+        gender: user.gender,
         bmi: user.bmi,
         medicalHistory: this.buildMedicalSummary(user),
         capabilityScore: user.fitnessProfile?.capabilityScore,

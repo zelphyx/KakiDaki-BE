@@ -31,6 +31,7 @@ export class UsersService {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
+        gender: dto.gender,
         heightCm: dto.heightCm,
         weightKg: dto.weightKg,
         bmi,
