@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { Difficulty } from '@prisma/client';
 
 export interface ExternalPeak {
-  externalId: string; // osm node id
+  externalId: string;
   name: string;
   elevationM: number | null;
   latitude: number;

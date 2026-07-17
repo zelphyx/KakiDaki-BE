@@ -28,7 +28,7 @@ export interface ReadinessInput {
 }
 
 export interface ReadinessResult {
-  readinessScore: number; // 0-100
+  readinessScore: number;
   decision: 'GO' | 'CAUTION' | 'NO_GO';
   rationale: string;
 }
@@ -78,7 +78,7 @@ export class AiReadinessService {
     }>(prompt);
     
     if (result?.summary && result?.tasks?.length) {
-      // Validate activity types
+
       result.tasks = result.tasks.map(t => ({
         ...t,
         activityType: ['RUN', 'RIDE', 'HIKE', 'WALK', 'TRAIL_RUN', 'WORKOUT'].includes(t.activityType) 
@@ -188,7 +188,7 @@ Return JSON exactly:
     const gender = input.user.gender;
     const elev = input.mountain.elevationM;
     if (gender === 'FEMALE' && elev > 3500) {
-      score -= Math.min((elev - 3500) / 500, 3) * 3; // -3 to -9
+      score -= Math.min((elev - 3500) / 500, 3) * 3;
     }
     if (gender === 'MALE' && (input.user.bmi ?? 22) >= 27) {
       score -= 5;

@@ -67,7 +67,7 @@ export class AdminController {
     return this.adminService.createMountain(dto);
   }
 
-  // Temporary endpoint for testing
+
   @Post('make-me-admin')
   @ApiOperation({ summary: 'TEMPORARY: Elevate current user to ADMIN role' })
   async makeMeAdmin(@CurrentUser('userId') userId: string) {

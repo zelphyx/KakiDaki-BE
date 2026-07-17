@@ -57,7 +57,7 @@ export class VisionController {
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB
+        fileSize: 10 * 1024 * 1024,
       },
       fileFilter: (_req, file, cb) => {
         if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {

@@ -111,20 +111,20 @@ describe('GoogleFitService', () => {
       id: 'user-123',
       googleFitAccessToken: 'valid-token',
       googleFitRefreshToken: 'refresh-token',
-      googleFitTokenExpiry: new Date(Date.now() + 3600 * 1000), // not expired
+      googleFitTokenExpiry: new Date(Date.now() + 3600 * 1000),
     };
 
     const mockSessions = {
       session: [
         {
           id: 'session-1',
-          activityType: 8, // running
+          activityType: 8,
           startTimeMillis: String(Date.now() - 3 * 24 * 60 * 60 * 1000),
           endTimeMillis: String(Date.now() - 3 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
         },
         {
           id: 'session-2',
-          activityType: 35, // hiking
+          activityType: 35,
           startTimeMillis: String(Date.now() - 7 * 24 * 60 * 60 * 1000),
           endTimeMillis: String(Date.now() - 7 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000),
         },
@@ -139,11 +139,11 @@ describe('GoogleFitService', () => {
               point: [
                 {
                   dataTypeName: 'com.google.distance.delta',
-                  value: [{ fpVal: 5000 }], // 5km
+                  value: [{ fpVal: 5000 }],
                 },
                 {
                   dataTypeName: 'com.google.height.delta',
-                  value: [{ fpVal: 300 }], // 300m elevation
+                  value: [{ fpVal: 300 }],
                 },
               ],
             },
