@@ -208,6 +208,7 @@ model Expedition {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   logistics Logistic[]
+  trainingPlan TrainingPlan?
 
   @@map("expeditions")
 }
@@ -305,4 +306,38 @@ model Payment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("payments")
+}
+
+// ============================================================
+// TRAINING PLAN (AI Generated & Google Fit Tracked)
+// ============================================================
+
+model TrainingPlan {
+  id           String       @id @default(uuid())
+  expeditionId String       @unique @map("expedition_id")
+  expedition   Expedition   @relation(fields: [expeditionId], references: [id], onDelete: Cascade)
+  summary      String
+  
+  createdAt    DateTime     @default(now()) @map("created_at")
+  tasks        TrainingTask[]
+
+  @@map("training_plans")
+}
+
+model TrainingTask {
+  id               String       @id @default(uuid())
+  trainingPlanId   String       @map("training_plan_id")
+  trainingPlan     TrainingPlan @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade)
+  
+  activityType     ActivityType @map("activity_type")
+  targetDistanceKm Float?       @map("target_distance_km")
+  targetElevationM Float?       @map("target_elevation_m")
+  description      String
+  
+  isCompleted      Boolean      @default(false) @map("is_completed")
+  matchedLogId     String?      @map("matched_log_id") // Links to TrainingLog if completed
+  
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  @@map("training_tasks")
 }

@@ -128,6 +128,7 @@ export class ExpeditionsService {
     };
 
     const readiness = await this.ai.assessReadiness(aiInput);
+    const trainingPlan = await this.ai.suggestTrainingPlan(aiInput);
 
     const updated = await this.prisma.expedition.update({
       where: { id: expeditionId },
@@ -138,8 +139,35 @@ export class ExpeditionsService {
         decision: readiness.decision,
         aiRationale: readiness.rationale,
         status: 'READY',
+        trainingPlan: {
+          upsert: {
+            create: {
+              summary: trainingPlan.summary,
+              tasks: {
+                create: trainingPlan.tasks.map(t => ({
+                  activityType: t.activityType as any,
+                  targetDistanceKm: t.targetDistanceKm,
+                  targetElevationM: t.targetElevationM,
+                  description: t.description,
+                })),
+              },
+            },
+            update: {
+              summary: trainingPlan.summary,
+              tasks: {
+                deleteMany: {},
+                create: trainingPlan.tasks.map(t => ({
+                  activityType: t.activityType as any,
+                  targetDistanceKm: t.targetDistanceKm,
+                  targetElevationM: t.targetElevationM,
+                  description: t.description,
+                })),
+              },
+            },
+          },
+        },
       },
-      include: { mountain: true, logistics: true },
+      include: { mountain: true, logistics: true, trainingPlan: { include: { tasks: true } } },
     });
 
     return {
@@ -210,7 +238,7 @@ export class ExpeditionsService {
   findAll(userId: string) {
     return this.prisma.expedition.findMany({
       where: { userId },
-      include: { mountain: true },
+      include: { mountain: true, trainingPlan: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -218,7 +246,7 @@ export class ExpeditionsService {
   async findOne(userId: string, id: string) {
     const expedition = await this.prisma.expedition.findFirst({
       where: { id, userId },
-      include: { mountain: true, logistics: true },
+      include: { mountain: true, logistics: true, trainingPlan: { include: { tasks: true } } },
     });
     if (!expedition) throw new NotFoundException('Expedition not found');
     return expedition;

@@ -149,7 +149,59 @@ export class GoogleFitService {
     }
 
     await this.deriveFitnessProfile(userId);
+    await this.matchTrainingTasks(userId);
     return { synced };
+  }
+
+  private async matchTrainingTasks(userId: string) {
+    const incompleteTasks = await this.prisma.trainingTask.findMany({
+      where: {
+        isCompleted: false,
+        trainingPlan: {
+          expedition: {
+            userId,
+            status: { in: ['DRAFT', 'READY'] }
+          }
+        }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+    if (incompleteTasks.length === 0) return;
+
+    const allMatchedTasks = await this.prisma.trainingTask.findMany({
+      where: {
+        isCompleted: true,
+        matchedLogId: { not: null },
+        trainingPlan: { expedition: { userId } }
+      },
+      select: { matchedLogId: true }
+    });
+    const usedLogIds = allMatchedTasks.map(t => t.matchedLogId).filter(Boolean) as string[];
+
+    for (const task of incompleteTasks) {
+      const targetDist = task.targetDistanceKm ?? 0;
+      const targetElev = task.targetElevationM ?? 0;
+
+      const matchedLog = await this.prisma.trainingLog.findFirst({
+        where: {
+          userId,
+          activityType: task.activityType,
+          startedAt: { gte: task.createdAt },
+          distanceKm: { gte: targetDist },
+          elevationGainM: { gte: targetElev },
+          id: { notIn: usedLogIds }
+        },
+        orderBy: { startedAt: 'asc' }
+      });
+
+      if (matchedLog) {
+        await this.prisma.trainingTask.update({
+          where: { id: task.id },
+          data: { isCompleted: true, matchedLogId: matchedLog.id }
+        });
+        usedLogIds.push(matchedLog.id);
+      }
+    }
   }
 
   private async getSessionMetrics(

@@ -44,7 +44,6 @@ async function bootstrap() {
     .addTag('Google Fit')
     .addTag('Comments')
     .addTag('Payments')
-    .addTag('Vision')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

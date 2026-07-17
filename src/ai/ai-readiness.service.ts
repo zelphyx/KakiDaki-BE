@@ -65,6 +65,31 @@ export class AiReadinessService {
     return this.fallbackLogistics(input);
   }
 
+  async suggestTrainingPlan(input: ReadinessInput) {
+    const prompt = this.buildTrainingPlanPrompt(input);
+    const result = await this.gemini.generateJson<{
+      summary: string;
+      tasks: {
+        activityType: string;
+        targetDistanceKm: number;
+        targetElevationM: number;
+        description: string;
+      }[];
+    }>(prompt);
+    
+    if (result?.summary && result?.tasks?.length) {
+      // Validate activity types
+      result.tasks = result.tasks.map(t => ({
+        ...t,
+        activityType: ['RUN', 'RIDE', 'HIKE', 'WALK', 'TRAIL_RUN', 'WORKOUT'].includes(t.activityType) 
+          ? t.activityType 
+          : 'OTHER'
+      }));
+      return result;
+    }
+    return this.fallbackTrainingPlan(input);
+  }
+
   private buildReadinessPrompt(input: ReadinessInput): string {
     return `You are a mountaineering safety expert for Indonesian mountains.
 Analyze the climber's readiness and return ONLY JSON.
@@ -117,6 +142,40 @@ Return JSON exactly:
 {
   "items": [
     { "itemName": "<string>", "amount": "<string>", "category": "<CATEGORY>", "isMandatory": <boolean>, "note": "<optional string>" }
+  ]
+}`;
+  }
+
+  private buildTrainingPlanPrompt(input: ReadinessInput): string {
+    return `You are a sports science and mountaineering expert for Indonesian mountains.
+Generate a physical training plan for a climber to prepare for a mountain expedition. Return ONLY JSON.
+
+Climber:
+- Age: ${input.user.age ?? 'unknown'}
+- BMI: ${input.user.bmi ?? 'unknown'}
+- Fitness capability score (0-100): ${input.user.capabilityScore ?? 'unknown'}
+
+Mountain:
+- Name: ${input.mountain.name}
+- Elevation: ${input.mountain.elevationM} m
+- Difficulty: ${input.mountain.difficulty}
+- Distance to peak: ${input.mountain.distanceToPeakKm} km
+
+Requirements:
+- "summary": A brief 2-3 sentence overview in Indonesian of why this training is needed.
+- "tasks": An array of training tasks. Activity types must be exactly one of: RUN, RIDE, HIKE, WALK, TRAIL_RUN, WORKOUT. 
+- Target distance and elevation should be numbers (in km and m). Use 0 for elevation if not applicable.
+
+Return JSON exactly:
+{
+  "summary": "<string in Indonesian>",
+  "tasks": [
+    {
+      "activityType": "<RUN|RIDE|HIKE|WALK|TRAIL_RUN|WORKOUT>",
+      "targetDistanceKm": <number>,
+      "targetElevationM": <number>,
+      "description": "<string in Indonesian>"
+    }
   ]
 }`;
   }
@@ -176,5 +235,25 @@ Return JSON exactly:
       });
     }
     return base;
+  }
+
+  private fallbackTrainingPlan(input: ReadinessInput) {
+    return {
+      summary: 'Kondisi fisik dasar perlu disiapkan sebelum pendakian. Lakukan latihan kardio ringan secara rutin.',
+      tasks: [
+        {
+          activityType: 'RUN',
+          targetDistanceKm: 3,
+          targetElevationM: 0,
+          description: 'Lari santai 3km untuk membiasakan detak jantung (kardio dasar).',
+        },
+        {
+          activityType: 'WALK',
+          targetDistanceKm: 5,
+          targetElevationM: 0,
+          description: 'Jalan cepat sejauh 5km untuk ketahanan otot kaki.',
+        },
+      ],
+    };
   }
 }
